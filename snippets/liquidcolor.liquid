@@ -1,0 +1,139 @@
+{%- if liquidcolor -%}
+  {% assign liquidcolor_hex = liquidcolor %}
+
+  {% comment %}
+    Hex to RGB
+    - Credit to Grant Eagon for the hex to rgb functionality
+    - https://github.com/granteagon/Shopify-hex2rgb.liquid
+  {% endcomment %}
+  {% assign liquidcolor_rgb = liquidcolor_hex | remove: '#' | downcase | split: '' %}
+  {% assign liquidcolor_str = '' %}
+  {% assign liquidcolor_chars = 'a,b,c,d,e,f' | split: ',' %}
+  {% assign liquidcolor_remainders = '10,11,12,13,14,15' | split: ',' %}
+  {% for liquidcolor_i in (0..5) %}
+    {% assign liquidcolor_is_char = 0 %}
+    {% for liquidcolor_c in (0..5) %}
+      {% unless liquidcolor_is_char == 1 %}
+        {% if liquidcolor_rgb[liquidcolor_i] == liquidcolor_chars[liquidcolor_c] %}
+          {% assign liquidcolor_is_char = 1 %}
+          {% capture liquidcolor_str %}{{ liquidcolor_str }}{{ liquidcolor_remainders[liquidcolor_c]}}|{% endcapture %}
+        {% endif %}
+
+      {% endunless %}
+
+    {% endfor %}
+
+    {% if liquidcolor_is_char == 0 %}
+      {% capture liquidcolor_str %}{{ liquidcolor_str }}{{ liquidcolor_rgb[liquidcolor_i] }}|{% endcapture %}
+    {% endif %}
+  {% endfor %}
+  {% assign liquidcolor_rgb = liquidcolor_str | split: '|' %}
+  {% assign liquidcolor_rgb_r = liquidcolor_rgb[0] | times: 16 | plus: liquidcolor_rgb[1] %}
+  {% assign liquidcolor_rgb_g = liquidcolor_rgb[2] | times: 16 | plus: liquidcolor_rgb[3] %}
+  {% assign liquidcolor_rgb_b = liquidcolor_rgb[4] | times: 16 | plus: liquidcolor_rgb[5] %}
+  {% capture liquidcolor_rgb %}{{ liquidcolor_rgb_r }},{{ liquidcolor_rgb_g }},{{ liquidcolor_rgb_b }}{% endcapture %}
+  {% assign liquidcolor_rgb_array = liquidcolor_rgb | split: ',' %}
+
+  {% comment %}
+    RGB to HSL
+  {% endcomment %}
+  {% assign liquidcolor_hsl = '' %}
+  {% comment %}
+    Convert the 0-255 rgb ranges to 0-1
+  {% endcomment %}
+  {% assign liquidcolor_rgb_r_bound = liquidcolor_rgb_r | divided_by: 255.00 | round: 2 %}
+  {% assign liquidcolor_rgb_g_bound = liquidcolor_rgb_g | divided_by: 255.00 | round: 2 %}
+  {% assign liquidcolor_rgb_b_bound = liquidcolor_rgb_b | divided_by: 255.00 | round: 2 %}
+  {% capture liquidcolor_rgb_bound %}{{ liquidcolor_rgb_r_bound }},{{ liquidcolor_rgb_g_bound }},{{ liquidcolor_rgb_b_bound }}{% endcapture %}
+  {% assign liquidcolor_rgb_bound_array = liquidcolor_rgb_bound | split: ',' %}
+
+  {% comment %}
+    Find the max channel, used to calculate hue
+  {% endcomment %}
+  {% assign liquidcolor_rgb_max_channel = 'red' %}
+  {% if liquidcolor_rgb_g >= liquidcolor_rgb_r and liquidcolor_rgb_g >= liquidcolor_rgb_b %}
+    {% if liquidcolor_rgb_g == liquidcolor_rgb_r %}
+      {% assign liquidcolor_rgb_max_channel = 'red' %}
+    {% else %}
+      {% assign liquidcolor_rgb_max_channel = 'green' %}
+    {% endif %}
+  {% endif %}
+  {% if liquidcolor_rgb_b >= liquidcolor_rgb_r and liquidcolor_rgb_b >= liquidcolor_rgb_g %}
+    {% if liquidcolor_rgb_b == liquidcolor_rgb_g %}
+      {% assign liquidcolor_rgb_max_channel = 'green' %}
+    {% else %}
+      {% assign liquidcolor_rgb_max_channel = 'blue' %}
+    {% endif %}
+  {% endif %}
+
+
+  {% comment %}
+    Find the minimum and maximum values of r, g and b
+  {% endcomment %}
+  {% assign liquidcolor_rgb_bound_range = liquidcolor_rgb_bound_array | sort %}
+  {% assign liquidcolor_rgb_bound_min = liquidcolor_rgb_bound_range[0] %}
+  {% assign liquidcolor_rgb_bound_max = liquidcolor_rgb_bound_range[2] %}
+
+  {% comment %}
+    Calculate the Luminace value by adding the max and min values
+    and divide by 2.
+  {% endcomment %}
+  {% assign liquidcolor_hsl_l = liquidcolor_rgb_bound_min | plus: liquidcolor_rgb_bound_max | divided_by: 2 | times: 100 | round %}
+
+  {% comment %}
+    Calculate liquidcolor_isLight
+    Set the contrast color liquidcolor_getContrastColor
+  {% endcomment %}
+  {% if liquidcolor_hsl_l > 50 %}
+    {% assign liquidcolor_isLight = true %}
+    {% assign liquidcolor_getContrastColor = '#000000' %}
+  {% else %}
+    {% assign liquidcolor_isLight = false %}
+    {% assign liquidcolor_getContrastColor = '#ffffff' %}
+  {% endif %}
+
+
+  {% comment %}
+    Calculate saturation
+    - if liquidcolor_rgb_bound_min and liquidcolor_rgb_bound_max are equal there is no saturation
+    - If Luminance is bigger then 0.5. then Saturation = ( max-min)/(2.0-max-min)
+    - If Luminance is smaller then 0.5, then Saturation = (max-min)/(max+min)
+  {% endcomment %}
+  {% assign liquidcolor_hsl_s_a = liquidcolor_rgb_bound_max | minus: liquidcolor_rgb_bound_min %}
+  {% if liquidcolor_rgb_bound_min == liquidcolor_rgb_bound_max %}
+    {% assign liquidcolor_hsl_s = 0 %}
+  {% else %}
+    {% if liquidcolor_isLight == true %}
+      {% assign liquidcolor_hsl_s_b = 2.0 | minus: liquidcolor_rgb_bound_max | minus: liquidcolor_rgb_bound_min %}
+      {% assign liquidcolor_hsl_s = liquidcolor_hsl_s_a | divided_by: liquidcolor_hsl_s_b %}
+    {% else %}
+      {% assign liquidcolor_hsl_s_c = liquidcolor_rgb_bound_max | plus: liquidcolor_rgb_bound_min %}
+      {% assign liquidcolor_hsl_s = liquidcolor_hsl_s_a | divided_by: liquidcolor_hsl_s_c %}
+    {% endif %}
+    {% assign liquidcolor_hsl_s = liquidcolor_hsl_s | times: 100 | round %}
+  {% endif %}
+
+  {% comment %}
+    Calculate the hue, formula varies based on which channel is the max
+  {% endcomment %}
+  {% assign liquidcolor_hsl_h = 0 %}
+  {% if liquidcolor_rgb_max_channel == 'red' %}
+    {% assign liquidcolor_hsl_h_a = liquidcolor_rgb_g_bound | minus: liquidcolor_rgb_b_bound %}
+    {% assign liquidcolor_hsl_h_b = liquidcolor_rgb_bound_max | minus: liquidcolor_rgb_bound_min %}
+    {% assign liquidcolor_hsl_h_pre = liquidcolor_hsl_h_a | divided_by: liquidcolor_hsl_h_b %}
+  {% elsif liquidcolor_rgb_max_channel == 'green' %}
+    {% assign liquidcolor_hsl_h_a = liquidcolor_rgb_b_bound | minus: liquidcolor_rgb_r_bound %}
+    {% assign liquidcolor_hsl_h_b = liquidcolor_rgb_bound_max | minus: liquidcolor_rgb_bound_min %}
+    {% assign liquidcolor_hsl_h_pre = liquidcolor_hsl_h_a | divided_by: liquidcolor_hsl_h_b | plus: 2.0 %}
+  {% elsif liquidcolor_rgb_max_channel == 'blue' %}
+    {% assign liquidcolor_hsl_h_a = liquidcolor_rgb_r_bound | minus: liquidcolor_rgb_g_bound %}
+    {% assign liquidcolor_hsl_h_b = liquidcolor_rgb_bound_max | minus: liquidcolor_rgb_bound_min %}
+    {% assign liquidcolor_hsl_h_pre = liquidcolor_hsl_h_a | divided_by: liquidcolor_hsl_h_b | plus: 4.0 %}
+  {% endif %}
+  {% assign liquidcolor_hsl_h = liquidcolor_hsl_h_pre | times: 60 | round %}
+  {% if liquidcolor_hsl_h < 0 %}
+    {% assign liquidcolor_hsl_h = liquidcolor_hsl_h | plus: 360 %}
+  {% endif %}
+
+  {% capture liquidcolor_hsl %}{{ liquidcolor_hsl_h }},{{ liquidcolor_hsl_s }}%,{{ liquidcolor_hsl_l }}%{% endcapture %}
+{%- endif -%}
