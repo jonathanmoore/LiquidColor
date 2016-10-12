@@ -52,4 +52,4 @@ https://github.com/granteagon/Shopify-hex2rgb.liquid
 
 Help with the math on RGB to HSL conversions
 http://www.niwa.nu/2013/05/math-behind-colorspace-conversions-rgb-hsl/
-https://github.com/bgrins/TinyColor
+https://github.com/bgrins/TinyColor   
