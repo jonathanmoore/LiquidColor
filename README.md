@@ -3,8 +3,6 @@
 ## Liquid color tooling
 LiquidColor is a small snippet based library for color type conversions and basic manipulations in for Shopify written with Liquid. Since Shopify's new section and block color settings can not be processed through SCSS this is a reliable way to convert hex values to RGB, HSL and detect if a color is light or dark.
 
-In the long run, hopefully Shopify will introduce new liquid color filters or a way to process inline SCSS that will make this snippet irrelevant.
-
 ## Usage
 In a Shopify template, section or block add `{% include 'liquidcolor' with my_color %}` to generate a range of useful liquid variables based on the inputted hex color.
 
