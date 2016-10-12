@@ -26,6 +26,7 @@ RGBA: rgb({{ liquidcolor_rgb }}, 1)
 Red channel: {{ liquidcolor_rgb_r }}
 Green channel: {{ liquidcolor_rgb_g }}
 Blue channel: {{ liquidcolor_rgb_b }}
+Dominate channel: {{ liquidcolor_rgb_max_channel }}
 ```
 
 ### HSL, HSLA
@@ -48,8 +49,8 @@ getContrastColor: {{ liquidcolor_getContrastColor }}
 
 ## Credits
 Hex to RGB conversion thanks to Grant Eagon
-https://github.com/granteagon/Shopify-hex2rgb.liquid
+- https://github.com/granteagon/Shopify-hex2rgb.liquid
 
 Help with the math on RGB to HSL conversions
-http://www.niwa.nu/2013/05/math-behind-colorspace-conversions-rgb-hsl/
-https://github.com/bgrins/TinyColor   
+- http://www.niwa.nu/2013/05/math-behind-colorspace-conversions-rgb-hsl/
+- https://github.com/bgrins/TinyColor   
